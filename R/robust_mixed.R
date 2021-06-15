@@ -58,7 +58,7 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE){
       nc <- cols[i]
       ncend <- cols[i] + (nre - 1)
 
-      Zi <- Z[st:end, nc:ncend] #depends on how many obs in a cluster and how many rand effects
+      Zi <- data.matrix(Z[st:end, nc:ncend]) #depends on how many obs in a cluster and how many rand effects
       ml[[i]] <- Zi %*% G %*% t(Zi) + diag(sigma(m1)^2, nrow = js[i]) #ZGZ' + r
     }
 
