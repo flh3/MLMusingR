@@ -5,7 +5,8 @@
 #' @param satt Satterthwaite degrees of freedom approximation; TRUE or FALSE
 #' @param Gname Group/cluster name if more than two levels of clustering
 #'
-#' Only for two level models.
+#' If there are more than two levels of clustering, the clustering variable should
+#' set at the highest level
 #'
 #' @return
 #' @export
@@ -73,11 +74,13 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
   # }
 
     getV <- function(x){
-      var.d <- crossprod(getME(x, "Lambdat"))
-      Zt <- getME(x, "Zt")
+      lam <- data.matrix(getME(x, 'Lambdat'))
+      var.d <- crossprod(lam)
+      # var.d <- t(lam) %*% lam
+      Zt <- data.matrix(getME(x, "Zt"))
       vr <- sigma(x)^2
       var.b <- vr * (t(Zt) %*% var.d %*% Zt)
-      sI <- vr * Matrix::Diagonal(nobs(x)) #for a sparse matrix
+      sI <- vr * diag(nobs(x))
       var.y <- var.b + sI
     }
 
