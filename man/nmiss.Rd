@@ -16,5 +16,7 @@ nmiss(dat)
 Amount of missing data per variable
 }
 \examples{
+data(mtcars)
 nmiss(mtcars)
+
 }
