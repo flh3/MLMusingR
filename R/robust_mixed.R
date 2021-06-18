@@ -3,12 +3,13 @@
 #' @param m1 lme4 or nlme model object
 #' @param digits Number of digits for output
 #' @param satt Satterthwaite degrees of freedom approximation; TRUE or FALSE
+#' @param Gname Group/cluster name if more than two levels of clustering
 #'
 #' Only for two level models.
 #'
 #' @return
 #' @export
-robust_mixed <- function(m1, digits = 4, satt = FALSE){
+robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
 
   if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
 
@@ -17,10 +18,14 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE){
     y <- m1@resp$y #outcome
     Z <- getME(m1, 'Z') #sparse Z matrix
     b <- getME(m1, 'b') #random effects
+
+    if (is.null(Gname)){
     Gname <- names(getME(m1, 'l_i')) #name of clustering variable
     if (length(Gname) > 1) {
-      stop("lmer: Can only be used with two level data.")
+      stop("lmer: Can only be used with non cross-classified data. If more than two levels, specify Gname = 'clustername'")
     }
+    }
+
     js <- table(m1@frame[, Gname]) #how many observation in each cluster
     G <- bdiag(VarCorr(m1)) #G matrix
 
@@ -30,9 +35,10 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE){
 
     qq <- getME(m1, 'q') #columns in RE matrix
     NG <- getME(m1, 'l_i') #number of groups :: ngrps(m1)
+    NG <- NG[length(NG)]
     nre <- getME(m1, 'p_i') #qq/NG --> number of random effects
     inde <- cumsum(js) #number per group summed to create an index
-    cols <- seq(1, (NG * nre), by = nre) #dynamic columns for Z matrix
+
 
     ### The following is used to create the V matrix
     ### Probably other (better and faster) ways to to do this but I think this is the most transparent
@@ -40,29 +46,43 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE){
 
     gpsv <- m1@frame[, Gname] #data with groups
 
-    { #done a bit later than necessary but that is fine
-      if(is.unsorted(gpsv)){
-        stop("Data are not sorted by cluster. Please sort your data first by cluster, run the analysis, and then use the function.\n")
-      }
+    # { #done a bit later than necessary but that is fine
+    #   if(is.unsorted(gpsv)){
+    #     stop("Data are not sorted by cluster. Please sort your data first by cluster, run the analysis, and then use the function.\n")
+    #   }
+    # }
+
+  #   ml <- list() #empty list to store matrices
+  #   cols <- seq(1, (NG * nre), by = nre) #dynamic columns for Z matrix
+  #
+  #   for (i in 1:length(inde)){
+  #
+  #     if (i == 1) {
+  #       st = 1} else {
+  #         st = inde[i - 1] + 1}
+  #     end = st + js[i] - 1
+  #
+  #     nc <- cols[i]
+  #     ncend <- cols[i] + (nre - 1)
+  #
+  #     Zi <- data.matrix(Z[st:end, nc:ncend]) #depends on how many obs in a cluster and how many rand effects
+  #     ml[[i]] <- Zi %*% G %*% t(Zi) + diag(sigma(m1)^2, nrow = js[i]) #ZGZ' + r
+  #   }
+  #
+  #   Vm <- bdiag(ml) #makes a block diagonal weighting matrix
+  # }
+
+    getV <- function(x){
+      var.d <- crossprod(getME(x, "Lambdat"))
+      Zt <- getME(x, "Zt")
+      vr <- sigma(x)^2
+      var.b <- vr * (t(Zt) %*% var.d %*% Zt)
+      sI <- vr * Matrix::Diagonal(nobs(x)) #for a sparse matrix
+      var.y <- var.b + sI
     }
 
-    ml <- list() #empty list to store matrices
+    Vm <- getV(m1)
 
-    for (i in 1:length(inde)){
-
-      if (i == 1) {
-        st = 1} else {
-          st = inde[i - 1] + 1}
-      end = st + js[i] - 1
-
-      nc <- cols[i]
-      ncend <- cols[i] + (nre - 1)
-
-      Zi <- data.matrix(Z[st:end, nc:ncend]) #depends on how many obs in a cluster and how many rand effects
-      ml[[i]] <- Zi %*% G %*% t(Zi) + diag(sigma(m1)^2, nrow = js[i]) #ZGZ' + r
-    }
-
-    Vm <- bdiag(ml) #makes a block diagonal weighting matrix
   }
 
   if(class(m1) == 'lme'){ #if nlme
@@ -80,7 +100,7 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE){
 
     { #done a bit later than necessary but that is fine
       if(is.unsorted(gpsv)){
-        stop("Data are not sorted by cluster. Please sort your data first by cluster, run the analysis, and then use the function.\n")
+       stop("Data are not sorted by cluster. Please sort your data first by cluster, run the analysis, and then use the function.\n")
       }
     }
 
@@ -93,6 +113,8 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE){
     Vm <- bdiag(ml)
   }
 
+
+
   ### robust computation :: once all elements are extracted
   rr <- y - X %*% B #residuals with no random effects
   cdata <- data.frame(cluster = gpsv, r = rr)
@@ -100,10 +122,18 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE){
   gs <- names(table(cdata$cluster)) #name of the clusters
   u <- matrix(NA, nrow = NG, ncol = k)
 
-  for(i in 1:NG){
-    tmp <- js[i] #how many in group
-    u[i,] <- as.numeric(t(cdata$r[cdata$cluster == gs[i]]) %*% solve(ml[[i]]) %*% X[gpsv == gs[i], 1:k])
+  # correct
+  # for(i in 1:NG){
+  #   tmp <- js[i] #how many in group
+  #   u[i,] <- as.numeric(t(cdata$r[cdata$cluster == gs[i]]) %*% solve(ml[[i]]) %*% X[gpsv == gs[i], 1:k])
+  # }
+
+  for(i in 1:NG){ #2021.06.18
+    sel <- cdata$cluster == gs[i] #selection per cluster
+    u[i,] <- as.numeric(t(cdata$r[sel]) %*% solve(Vm[sel, sel]) %*% X[gpsv == gs[i], 1:k])
   }
+
+
 
   ## e' (Zg)-1 Xg
   ## putting the pieces together
@@ -112,6 +142,7 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE){
   mt <- t(u) %*% u #meat :: t(u) %*% u
   clvc2 <- br2 %*% mt %*% br2
   rse <- sqrt(diag(clvc2))
+
 
 
   ### HLM dof
@@ -133,6 +164,7 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE){
   l1v[is.na(l1v)] <- 0
   l2v[is.na(l2v)] <- 0
 
+
   ####
   n <- nobs(m1)
   #ns <- nobs(mod)
@@ -141,8 +173,6 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE){
 
   dfn <- rep(df1, length(levs)) #naive
   dfn[levs == '2'] <- df2
-
-
 
   if (satt == T){
     dfn <- satdf(m1)
@@ -212,7 +242,9 @@ satdf <- function(mod){
   } else if (class(mod) %in% c('lmerMod', 'lmerModLmerTest')){ #if lmer
     dat <- mod@frame
     X <- model.matrix(mod)
-    Gname <- names(getME(mod, 'l_i'))
+    xx <- length(getME(mod, 'l_i')) #number of groups :: ngrps(m1)
+
+    Gname <- names(getME(mod, 'l_i'))[xx]
     gpsv <- mod@frame[, Gname]
   } else {
     stop("Type of object is not an lmer or lme object.")

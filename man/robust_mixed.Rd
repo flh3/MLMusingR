@@ -4,14 +4,16 @@
 \alias{robust_mixed}
 \title{Robust standard errors for mixed models}
 \usage{
-robust_mixed(m1, digits = 4, satt = FALSE)
+robust_mixed(m1, digits = 4, satt = FALSE, Gname = NULL)
 }
 \arguments{
 \item{m1}{lme4 or nlme model object}
 
 \item{digits}{Number of digits for output}
 
-\item{satt}{Satterthwaite degrees of freedom approximation; TRUE or FALSE
+\item{satt}{Satterthwaite degrees of freedom approximation; TRUE or FALSE}
+
+\item{Gname}{Group/cluster name if more than two levels of clustering
 
 Only for two level models.}
 }
