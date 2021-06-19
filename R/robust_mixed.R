@@ -37,8 +37,8 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
     qq <- getME(m1, 'q') #columns in RE matrix
     NG <- getME(m1, 'l_i') #number of groups :: ngrps(m1)
     NG <- NG[length(NG)]
-    nre <- getME(m1, 'p_i') #qq/NG --> number of random effects
-    inde <- cumsum(js) #number per group summed to create an index
+    # nre <- getME(m1, 'p_i') #qq/NG --> number of random effects
+    # inde <- cumsum(js) #number per group summed to create an index
 
 
     ### The following is used to create the V matrix
@@ -140,13 +140,11 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
 
   ## e' (Zg)-1 Xg
   ## putting the pieces together
-
-  br2 <- solve(t(X) %*% solve(Vm) %*% X) #bread
+  Vinv <- solve(Vm)
+  br2 <- solve(t(X) %*% Vinv %*% X) #bread
   mt <- t(u) %*% u #meat :: t(u) %*% u
   clvc2 <- br2 %*% mt %*% br2
   rse <- sqrt(diag(clvc2))
-
-
 
   ### HLM dof
   chk <- function(x){
@@ -190,19 +188,21 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
                labels = c("***", "**", "*", ".", " "), include.lowest = TRUE)
 
   ################# COMPARE RESULTS
+  # gams <- solve(t(X) %*% solve(Vm) %*% X) %*% (t(X) %*% solve(Vm) %*% y)
 
-  gams <- solve(t(X) %*% solve(Vm) %*% X) %*% (t(X) %*% solve(Vm) %*% y)
-  SEm <- as.numeric(sqrt(diag(solve(t(X) %*% solve(Vm) %*% X)))) #X' Vm-1 X
+  gams <- br2 %*% t(X) %*% Vinv %*% y
+  # SEm <- as.numeric(sqrt(diag(solve(t(X) %*% solve(Vm) %*% X)))) #X' Vm-1 X
+  SEm <- as.numeric(sqrt(diag(br2))) #X' Vm-1 X
   # SE <- as.numeric(sqrt(diag(data.matrix(vcov(m1))))) #compare standard errors
   return(data.frame(
-    estimate = as.numeric(gams),
+    estimate = round(as.numeric(gams), 3),
     #FE_auto,
     mb.se = SEm,
     #SE_auto = SE,
     robust.se = robse,
-    dof = dfn,
+    df = round(dfn, 1),
     p.values,
-    stars
+    Sig = stars
   )
   )
 

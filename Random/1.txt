@@ -1,0 +1,99 @@
+
+
+getV <- function(x){
+  var.d <- crossprod(getME(x, "Lambdat"))
+  Zt <- getME(x, "Zt")
+  vr <- sigma(x)^2
+  var.b <- vr * (t(Zt) %*% var.d %*% Zt)
+  sI <- vr * Matrix::Diagonal(nobs(x)) #for a sparse matrix
+  var.y <- var.b + sI
+}
+
+library(dplyr)
+library(lme4)
+sleepstudy <- arrange(sleepstudy, Subject, Days)
+m1 <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
+summary(m1)
+bdiag(VarCorr(m1))
+Vm <- getV(m1)
+head(Vm)
+dim(Vm)
+Z <- getME(m1, "Z")
+
+var.d <- crossprod(getME(m1, "Lambdat"))
+vr <- sigma(m1)^2
+vr*(Z %*% var.d %*% t(Z))
+
+
+sel <- which(sleepstudy$Subject == 310)
+Vm[sel, sel]
+
+
+22 1321.3207  621.7046  845.0852  800.4091  755.7329  711.0568  889.7613
+21  621.7046 1267.0402  660.1222  650.5178  640.9134  631.3090  669.7266
+26  845.0852  660.1222 2239.8771 1399.9741 1215.0111 1030.0482 1769.9001
+25  800.4091  650.5178 1399.9741 1905.0229 1100.1916  950.3003 1549.8654
+24  755.7329  640.9134 1215.0111 1100.1916 1640.3121  870.5525 1329.8307
+23  711.0568  631.3090 1030.0482  950.3003  870.5525 1445.7447 1109.7960
+27  889.7613  669.7266 1769.9001 1549.8654 1329.8307 1109.7960 2644.8748
+30 1023.7897  698.5398 2324.7890 1999.5392 1674.2894 1349.0395 2650.0389
+28  934.4374  679.3310 1954.8631 1699.7567 1444.6503 1189.5438 2209.9695
+29  979.1136  688.9354 2139.8261 1849.6479 1559.4698 1269.2917 2430.0042
+
+mtcars
+m1 <- lmer(mpg ~ wt + (1|cyl), data = mtcars)
+robust_mixed(m1)
+
+summary(m1)
+library(clubSandwich)
+m1 <- lmer(Reaction ~ Days + (1 | Subject), sleepstudy)
+summary(m1)
+coef_test(m1, vcovCR(m1, sleepstudy$Subject, type = 'CR2'))
+robust_mixed(m1)
+
+
+library(mlmRev)
+library(dplyr)
+data(star)
+set.seed(123)
+konly <- filter(star, gr == 'K') %>% sample_frac(.2) #just selecting a few
+konly <- select(konly, cltype, sx, sch, tch, read, trace, schtype) %>% na.omit()
+#so the Z matrix can be seen
+m3 <- lmer(read ~ cltype + sx + (sx|sch/tch), data = konly)
+
+summary(m3)$coef
+robust_mixed(m3, Gname = 'sch')
+robust_mixed(m3, satt = T, Gname = 'sch')
+coef_test(m3, vcovCR(m3, konly$sch, type = 'CR2'))
+
+
+X <- model.matrix(m3)
+y <- m3@resp$y
+Vm <- getV(m3)
+getFE(X, Vm, y)
+
+
+names(getME(m3, 'l_i'))
+
+m4 <- lmer(read ~ cltype + sx + factor(sch) + (1|tch), data = konly)
+robust_mixed(m4, Gname = c('sch'), satt = T)
+robust_mixed(m4)
+
+install.packages("fastDummies")
+library(fastDummies)
+konly = fastDummies::dummy_cols(konly, c('cltype', 'sx'))
+l1 <- select(konly, sch, tch, read, cltype_small:sx_F)
+l2 <- select(konly, sch, tch, trace)
+l3 <- select(konly, sch, schtype)
+
+l1 <- arrange(l1, sch, tch)
+names(l1)[6] <- 'cltype_aide'
+l2 <- arrange(l2, sch, tch)
+l2 <- l2[!duplicated(l2),]
+l3 <- arrange(l3, sch)
+l3 <- filter(l3, !duplicated(l3))
+
+library(haven)
+rio::export(l1, 'c:/users/huangf/desktop/tst/l1.sav')
+rio::export(l2, 'c:/users/huangf/desktop/tst/l2.sav')
+rio::export(l3, 'c:/users/huangf/desktop/tst/l3.sav')
