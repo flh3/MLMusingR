@@ -10,7 +10,7 @@
 #'
 #' @return
 #' @export
-robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
+robust_mixed <- function(m1, digits = 4, satt = TRUE, Gname = NULL){
 
   if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
 
@@ -195,7 +195,7 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
   SEm <- as.numeric(sqrt(diag(br2))) #X' Vm-1 X
   # SE <- as.numeric(sqrt(diag(data.matrix(vcov(m1))))) #compare standard errors
   return(data.frame(
-    estimate = round(as.numeric(gams), 3),
+    estimate = as.numeric(gams),
     #FE_auto,
     mb.se = SEm,
     #SE_auto = SE,
