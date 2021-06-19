@@ -195,13 +195,14 @@ robust_mixed <- function(m1, digits = 4, satt = TRUE, Gname = NULL){
   SEm <- as.numeric(sqrt(diag(br2))) #X' Vm-1 X
   # SE <- as.numeric(sqrt(diag(data.matrix(vcov(m1))))) #compare standard errors
   return(data.frame(
-    estimate = as.numeric(gams),
+    estimate = round(as.numeric(gams), digits),
     #FE_auto,
-    mb.se = SEm,
+    mb.se = round(SEm, digits),
     #SE_auto = SE,
-    robust.se = robse,
+    robust.se = round(robse, digits),
     df = round(dfn, 1),
-    p.values,
+    t.stat = round(statistic, digits),
+    p.values = round(p.values, digits),
     Sig = stars
   )
   )
