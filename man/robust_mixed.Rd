@@ -4,7 +4,7 @@
 \alias{robust_mixed}
 \title{Robust standard errors for mixed models}
 \usage{
-robust_mixed(m1, digits = 4, satt = FALSE, Gname = NULL)
+robust_mixed(m1, digits = 4, satt = TRUE, Gname = NULL)
 }
 \arguments{
 \item{m1}{lme4 or nlme model object}
@@ -15,7 +15,8 @@ robust_mixed(m1, digits = 4, satt = FALSE, Gname = NULL)
 
 \item{Gname}{Group/cluster name if more than two levels of clustering
 
-Only for two level models.}
+If there are more than two levels of clustering, the clustering variable should
+set at the highest level}
 }
 \value{
 
