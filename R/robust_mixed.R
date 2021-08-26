@@ -9,6 +9,10 @@
 #' set at the highest level
 #'
 #' @return
+#' @examples
+#' data(mtcars)
+#' require(lmer)
+#' robust_mixed(lmer(mpg ~ wt + am + (1|cyl), data = mtcars))
 #' @export
 robust_mixed <- function(m1, digits = 4, satt = TRUE, Gname = NULL){
 

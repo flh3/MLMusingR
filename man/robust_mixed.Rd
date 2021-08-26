@@ -24,3 +24,8 @@ set at the highest level}
 \description{
 Robust standard errors for mixed models
 }
+\examples{
+data(mtcars)
+require(lmer)
+robust_mixed(lmer(mpg ~ wt + am + (1|cyl), data = mtcars))
+}
