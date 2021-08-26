@@ -17,6 +17,7 @@ Amount of missing data per variable
 }
 \examples{
 data(mtcars)
+mtcars[c(2:3), 4] <- NA #create NAs
 nmiss(mtcars)
 
 }

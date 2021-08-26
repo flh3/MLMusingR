@@ -2,16 +2,13 @@
 % Please edit documentation in R/robust_mixed.R
 \name{satdf}
 \alias{satdf}
-\title{Title}
+\title{For computing Sattherthwaite degrees of freedom}
 \usage{
 satdf(mod)
-}
-\arguments{
-\item{mod}{xxx}
 }
 \value{
 
 }
 \description{
-Title
+For computing Sattherthwaite degrees of freedom
 }

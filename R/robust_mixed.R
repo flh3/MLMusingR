@@ -136,8 +136,6 @@ robust_mixed <- function(m1, digits = 4, satt = TRUE, Gname = NULL){
     u[i,] <- as.numeric(t(cdata$r[sel]) %*% solve(Vm[sel, sel]) %*% X[gpsv == gs[i], 1:k])
   }
 
-
-
   ## e' (Zg)-1 Xg
   ## putting the pieces together
   Vinv <- solve(Vm)
@@ -228,9 +226,8 @@ MatSqrtInverse <- function(A) {
 
 ## empirical DOF
 
-#' Title
+#' For computing Sattherthwaite degrees of freedom
 #'
-#' @param mod xxx
 #'
 #' @return
 #' @export

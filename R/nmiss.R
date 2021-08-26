@@ -8,6 +8,7 @@
 #'
 #' @examples
 #' data(mtcars)
+#' mtcars[c(2:3), 4] <- NA #create NAs
 #' nmiss(mtcars)
 #'
 nmiss <- function(dat){
