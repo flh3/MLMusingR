@@ -11,7 +11,7 @@
 #'   \item{male}{Dummy coded gender, 1 = male, 0 = female}
 #'   \item{minority}{Dummy coded minority status, 1 = yes, 0 = no}
 #'   \item{mses}{Aggregated socioeconomic status at the school level}
-#'   \item{mhmewk}{Aggregated time spent on homework at the school level}
+#'   \item{mhmwk}{Aggregated time spent on homework at the school level}
 #' }
 #' @source \url{https://nces.ed.gov/pubs92/92030.pdf}
 "sch29"

@@ -11,7 +11,7 @@
 #' @return
 #' @examples
 #' data(mtcars)
-#' require(lmer)
+#' require(lme4)
 #' robust_mixed(lmer(mpg ~ wt + am + (1|cyl), data = mtcars))
 #' @export
 robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
@@ -119,7 +119,9 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
   clvc2 <- br2 %*% mt %*% br2
   rse <- sqrt(diag(clvc2))
 
-  if (satt == FALSE | NG > 49){
+  if (satt == TRUE | NG <50) {
+    dfn <- round(satdf(m1), 2)
+  } else {
     ### HLM dof
     chk <- function(x){
       vrcheck <- sum(tapply(x, gpsv, var), na.rm = T) #L1,
@@ -146,10 +148,6 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
     dfn <- rep(df1, length(levs)) #naive
     dfn[levs == '2'] <- df2
 
-  } else {
-
-    #if (satt == T | NG < 50){
-    dfn <- round(satdf(m1), 2) #satterthwaite dof
   }
 
   robse <- as.numeric(rse)
@@ -162,8 +160,8 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
   ################# COMPARE RESULTS
 
   #gams <- solve(t(X) %*% solve(Vm) %*% X) %*% (t(X) %*% solve(Vm) %*% y)
-  #SEm <- as.numeric(sqrt(diag(solve(t(X) %*% solve(Vm) %*% X)))) #X' Vm-1 X
-  SE <- as.numeric(sqrt(diag(vcov(m1)))) #compare standard errors
+  SE <- as.numeric(sqrt(diag(solve(t(X) %*% Vinv %*% X)))) #X' Vm-1 X
+  #SE <- as.numeric(sqrt(diag(vcov(m1)))) #compare standard errors
   return(data.frame(
     #FE_manual = as.numeric(gams),
     estimate = round(FE_auto, digits),

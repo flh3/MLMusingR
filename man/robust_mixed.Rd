@@ -4,7 +4,7 @@
 \alias{robust_mixed}
 \title{Robust standard errors for mixed models}
 \usage{
-robust_mixed(m1, digits = 4, satt = TRUE, Gname = NULL)
+robust_mixed(m1, digits = 4, satt = FALSE, Gname = NULL)
 }
 \arguments{
 \item{m1}{lme4 or nlme model object}
@@ -26,6 +26,6 @@ Robust standard errors for mixed models
 }
 \examples{
 data(mtcars)
-require(lmer)
+require(lme4)
 robust_mixed(lmer(mpg ~ wt + am + (1|cyl), data = mtcars))
 }
