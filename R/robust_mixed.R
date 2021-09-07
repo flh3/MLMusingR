@@ -14,10 +14,9 @@
 #' require(lmer)
 #' robust_mixed(lmer(mpg ~ wt + am + (1|cyl), data = mtcars))
 #' @export
-robust_mixed <- function(m1, digits = 4, satt = TRUE, Gname = NULL){
-
+robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
+  require(Matrix)
   if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
-
     X <- model.matrix(m1) #X matrix
     B <- fixef(m1) #coefficients
     y <- m1@resp$y #outcome
@@ -25,75 +24,33 @@ robust_mixed <- function(m1, digits = 4, satt = TRUE, Gname = NULL){
     b <- getME(m1, 'b') #random effects
 
     if (is.null(Gname)){
-    Gname <- names(getME(m1, 'l_i')) #name of clustering variable
-    if (length(Gname) > 1) {
-      stop("lmer: Can only be used with non cross-classified data. If more than two levels, specify Gname = 'clustername'")
+      Gname <- names(getME(m1, 'l_i')) #name of clustering variable
+      if (length(Gname) > 1) {
+        stop("lmer: Can only be used with non cross-classified data. If more than two levels, specify Gname = 'clustername'")
+      }
     }
-    }
 
-    js <- table(m1@frame[, Gname]) #how many observation in each cluster
-    G <- bdiag(VarCorr(m1)) #G matrix
-
-    #re <- as.numeric(y - (X %*% B + Z %*% b)) #not used, just checking
-    #data.frame(re, resid(m1)) #the same
-    #cor(re, resid(m1)) #1
-
-    qq <- getME(m1, 'q') #columns in RE matrix
+    # qq <- getME(m1, 'q') #columns in RE matrix
     NG <- getME(m1, 'l_i') #number of groups :: ngrps(m1)
     NG <- NG[length(NG)]
-    # nre <- getME(m1, 'p_i') #qq/NG --> number of random effects
-    # inde <- cumsum(js) #number per group summed to create an index
-
-
-    ### The following is used to create the V matrix
-    ### Probably other (better and faster) ways to to do this but I think this is the most transparent
-    ### and works with my basic knowledge of matrices in R
 
     gpsv <- m1@frame[, Gname] #data with groups
 
-    # { #done a bit later than necessary but that is fine
-    #   if(is.unsorted(gpsv)){
-    #     stop("Data are not sorted by cluster. Please sort your data first by cluster, run the analysis, and then use the function.\n")
-    #   }
-    # }
+    ml <- list() #empty list to store matrices
 
-  #   ml <- list() #empty list to store matrices
-  #   cols <- seq(1, (NG * nre), by = nre) #dynamic columns for Z matrix
-  #
-  #   for (i in 1:length(inde)){
-  #
-  #     if (i == 1) {
-  #       st = 1} else {
-  #         st = inde[i - 1] + 1}
-  #     end = st + js[i] - 1
-  #
-  #     nc <- cols[i]
-  #     ncend <- cols[i] + (nre - 1)
-  #
-  #     Zi <- data.matrix(Z[st:end, nc:ncend]) #depends on how many obs in a cluster and how many rand effects
-  #     ml[[i]] <- Zi %*% G %*% t(Zi) + diag(sigma(m1)^2, nrow = js[i]) #ZGZ' + r
-  #   }
-  #
-  #   Vm <- bdiag(ml) #makes a block diagonal weighting matrix
-  # }
-
-    getV <- function(x){
-      lam <- data.matrix(getME(x, 'Lambdat'))
+    getV <- function(x) {
+      lam <- data.matrix(getME(x, "Lambdat"))
       var.d <- crossprod(lam)
-      # var.d <- t(lam) %*% lam
       Zt <- data.matrix(getME(x, "Zt"))
       vr <- sigma(x)^2
       var.b <- vr * (t(Zt) %*% var.d %*% Zt)
       sI <- vr * diag(nobs(x))
       var.y <- var.b + sI
     }
-
     Vm <- getV(m1)
-
   }
 
   if(class(m1) == 'lme'){ #if nlme
-    require(nlme)
     dat <- m1$data
     fml <- formula(m1)
     X <- model.matrix(fml, data = dat)
@@ -103,11 +60,11 @@ robust_mixed <- function(m1, digits = 4, satt = TRUE, Gname = NULL){
     Gname <- names(m1$groups)
     y <- dat[,as.character(m1$terms[[2]])]
     gpsv <- dat[,Gname]
-    js <- table(gpsv)
+    js <- table(gpsv)[table(gpsv) > 0]
 
     { #done a bit later than necessary but that is fine
       if(is.unsorted(gpsv)){
-       stop("Data are not sorted by cluster. Please sort your data first by cluster, run the analysis, and then use the function.\n")
+        stop("Data are not sorted by cluster. Please sort your data first by cluster, run the analysis, and then use the function.\n")
       }
     }
 
@@ -120,92 +77,104 @@ robust_mixed <- function(m1, digits = 4, satt = TRUE, Gname = NULL){
     Vm <- bdiag(ml)
   }
 
-
-
   ### robust computation :: once all elements are extracted
   rr <- y - X %*% B #residuals with no random effects
   cdata <- data.frame(cluster = gpsv, r = rr)
   k <- ncol(X) #
   gs <- names(table(cdata$cluster)) #name of the clusters
-  u <- matrix(NA, nrow = NG, ncol = k)
+  u <- matrix(NA, nrow = NG, ncol = k) #LZ
+  cnames <- names(table(gpsv)[table(gpsv) > 0])
+  cpx <- solve(crossprod(X))
 
-  # correct
-  # for(i in 1:NG){
-  #   tmp <- js[i] #how many in group
-  #   u[i,] <- as.numeric(t(cdata$r[cdata$cluster == gs[i]]) %*% solve(ml[[i]]) %*% X[gpsv == gs[i], 1:k])
-  # }
+  if (NG < 50 | satt == TRUE){
+    ## getting CR2
+    ## mtsqrtinv
+    tXs <- function(s) {
+      Xs <- X[cdata$cluster == s, , drop = F]
+      MatSqrtInverse(diag(NROW(Xs)) - Xs %*% cpx %*% t(Xs)) %*%
+        Xs
+    } # A x Xs / Need this first
 
-  for(i in 1:NG){ #2021.06.18
-    sel <- cdata$cluster == gs[i] #selection per cluster
-    u[i,] <- as.numeric(t(cdata$r[sel]) %*% solve(Vm[sel, sel]) %*% X[gpsv == gs[i], 1:k])
+    tX <- lapply(cnames, tXs)
+
+    for(i in 1:NG){
+      ind <- gpsv == gs[i]
+      u[i,] <- as.numeric(t(cdata$r[ind]) %*% solve(Vm[ind, ind]) %*% tX[[i]])
+    }
+
+  } else {
+
+    # getting CR0
+    for(i in 1:NG){
+      ind <- gpsv == gs[i]
+      u[i,] <- as.numeric(t(cdata$r[ind]) %*% solve(Vm[ind, ind]) %*% X[ind, 1:k])
+
+    }
   }
-
   ## e' (Zg)-1 Xg
   ## putting the pieces together
-  Vinv <- solve(Vm)
+  Vinv <- solve(Vm) #should not really do this because it is slow...
   br2 <- solve(t(X) %*% Vinv %*% X) #bread
   mt <- t(u) %*% u #meat :: t(u) %*% u
   clvc2 <- br2 %*% mt %*% br2
   rse <- sqrt(diag(clvc2))
 
-  ### HLM dof
-  chk <- function(x){
-    vrcheck <- sum(tapply(x, gpsv, var), na.rm = T) #L1,
-    # na needed if only one observation with var = NA
-    y <- 1 #assume lev1 by default
-    if (vrcheck == 0) (y <- 2) #if variation, then L2
-    return(y)
-  }
+  if (satt == FALSE | NG > 49){
+    ### HLM dof
+    chk <- function(x){
+      vrcheck <- sum(tapply(x, gpsv, var), na.rm = T) #L1,
+      # na needed if only one observation with var = NA
+      y <- 1 #assume lev1 by default
+      if (vrcheck == 0) (y <- 2) #if variation, then L2
+      return(y)
+    }
 
-  levs <- apply(X, 2, chk) #all except intercept
-  levs[1] <- 1 #intercept
+    levs <- apply(X, 2, chk) #all except intercept
+    levs[1] <- 1 #intercept
 
-  tt <- table(levs)
-  l1v <- tt['1']
-  l2v <- tt['2']
+    tt <- table(levs)
+    l1v <- tt['1']
+    l2v <- tt['2']
 
-  l1v[is.na(l1v)] <- 0
-  l2v[is.na(l2v)] <- 0
+    l1v[is.na(l1v)] <- 0
+    l2v[is.na(l2v)] <- 0
 
+    ####
+    n <- nobs(m1)
+    df1 <- n - l1v - NG + 1 #l2v
+    df2 <- NG - l2v - 1
+    dfn <- rep(df1, length(levs)) #naive
+    dfn[levs == '2'] <- df2
 
-  ####
-  n <- nobs(m1)
-  #ns <- nobs(mod)
-  df1 <- n - l1v - l2v
-  df2 <- NG - l2v - 1
+  } else {
 
-  dfn <- rep(df1, length(levs)) #naive
-  dfn[levs == '2'] <- df2
-
-  if (satt == T){
-    dfn <- satdf(m1)
+    #if (satt == T | NG < 50){
+    dfn <- round(satdf(m1), 2) #satterthwaite dof
   }
 
   robse <- as.numeric(rse)
   FE_auto <- fixef(m1)
   statistic <- FE_auto / robse
   p.values = round(2 * pt(-abs(statistic), df = dfn), digits)
-
   stars <- cut(p.values, breaks = c(0, 0.001, 0.01, 0.05, 0.1, 1),
                labels = c("***", "**", "*", ".", " "), include.lowest = TRUE)
 
   ################# COMPARE RESULTS
-  # gams <- solve(t(X) %*% solve(Vm) %*% X) %*% (t(X) %*% solve(Vm) %*% y)
 
-  gams <- br2 %*% t(X) %*% Vinv %*% y
-  # SEm <- as.numeric(sqrt(diag(solve(t(X) %*% solve(Vm) %*% X)))) #X' Vm-1 X
-  SEm <- as.numeric(sqrt(diag(br2))) #X' Vm-1 X
-  # SE <- as.numeric(sqrt(diag(data.matrix(vcov(m1))))) #compare standard errors
+  #gams <- solve(t(X) %*% solve(Vm) %*% X) %*% (t(X) %*% solve(Vm) %*% y)
+  #SEm <- as.numeric(sqrt(diag(solve(t(X) %*% solve(Vm) %*% X)))) #X' Vm-1 X
+  SE <- as.numeric(sqrt(diag(vcov(m1)))) #compare standard errors
   return(data.frame(
-    estimate = round(as.numeric(gams), digits),
-    #FE_auto,
-    mb.se = round(SEm, digits),
-    #SE_auto = SE,
+    #FE_manual = as.numeric(gams),
+    estimate = round(FE_auto, digits),
+    #SE_manual = SEm,
+    mb.se = round(SE, digits),
     robust.se = round(robse, digits),
-    df = round(dfn, 1),
     t.stat = round(statistic, digits),
+    df = dfn,
     p.values = round(p.values, digits),
     Sig = stars
+
   )
   )
 
@@ -242,6 +211,7 @@ satdf <- function(mod){
     fml <- formula(mod)
     X <- model.matrix(fml, data = dat)
     Gname <- names(mod$groups)
+    Gname <- Gname[length(Gname)]
     gpsv <- dat[,Gname]
 
   } else if (class(mod) %in% c('lmerMod', 'lmerModLmerTest')){ #if lmer
@@ -255,7 +225,7 @@ satdf <- function(mod){
     stop("Type of object is not an lmer or lme object.")
   }
 
-  cnames <- names(table(gpsv))
+  cnames <- names(table(gpsv)[table(gpsv) > 0])
   cpx <- solve(crossprod(X))
   cdata <- data.frame(cluster = dat[,Gname])
   NG <- length(cnames)
