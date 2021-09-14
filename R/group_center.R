@@ -2,17 +2,16 @@
 #'
 #' Also referred to as centering within cluster.
 #'
-#' @param var Variable to center (e.g., dataframe$varname)
+#' @param x Variable to center (e.g., dataframe$varname)
 #' @param grp Cluster/grouping variable (e.g., dataframe$cluster)
 #'
-#' @return
 #' @export
 #'
 #' @examples
 #' data(mtcars)
 #' #create a group centered variable
-#' mtcars$mpg.gpc <- groupcenter(mtcars$mpg, mtcars$cyl)
-groupcenter <- function(var, grp) {
+#' mtcars$mpg.gpc <- group_center(mtcars$mpg, mtcars$cyl)
+group_center <- function(x, grp) {
   grp <- as.numeric(as.factor(grp))
-  return(var - tapply(var, grp, mean, na.rm = TRUE)[grp])
+  return(x - tapply(x, grp, mean, na.rm = TRUE)[grp])
 }
