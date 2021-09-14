@@ -3,7 +3,6 @@
 #' @description Amount of missing data per variable
 #' @param dat Data frame that you want to inspect
 #'
-#' @return
 #' @export
 #'
 #' @examples

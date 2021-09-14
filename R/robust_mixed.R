@@ -8,15 +8,15 @@
 #' If there are more than two levels of clustering, the clustering variable should
 #' set at the highest level
 #'
-#' @return
+#' @importFrom stats var pt sigma model.matrix
+#' @import lme4
 #' @examples
 #' data(mtcars)
 #' require(lme4)
 #' robust_mixed(lmer(mpg ~ wt + am + (1|cyl), data = mtcars))
 #' @export
 robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
-  require(Matrix)
-  if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
+   if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
     X <- model.matrix(m1) #X matrix
     B <- fixef(m1) #coefficients
     y <- m1@resp$y #outcome
@@ -74,7 +74,7 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
       ml[[j]] <- test[[1]]
     }
 
-    Vm <- bdiag(ml)
+    Vm <- Matrix::bdiag(ml)
   }
 
   ### robust computation :: once all elements are extracted
@@ -178,11 +178,10 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
 
 }
 
-#' Title
+#' Compute the inverse square root of a matrix
 #'
-#' @param A xxx
+#' @param A A matrix.
 #'
-#' @return
 #' @export
 #'
 MatSqrtInverse <- function(A) {
@@ -197,10 +196,9 @@ MatSqrtInverse <- function(A) {
 
 ## empirical DOF
 
-#' For computing Sattherthwaite degrees of freedom
+#' For computing Satterthwaite degrees of freedom
 #'
-#'
-#' @return
+#' @param mod An lme, lmerMod, or lmerModLmerTest object.
 #' @export
 #'
 satdf <- function(mod){

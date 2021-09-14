@@ -7,7 +7,7 @@
 #' Based on Raudenbush and Bryk (2002).
 #' A statistically significant X2 indicates heteroskedasticity.
 #'
-#' @return
+#' @importFrom stats formula complete.cases lm nobs pchisq
 #' @export
 Htest <- function(newdata, fml, group){
 

@@ -18,9 +18,6 @@ robust_mixed(m1, digits = 4, satt = FALSE, Gname = NULL)
 If there are more than two levels of clustering, the clustering variable should
 set at the highest level}
 }
-\value{
-
-}
 \description{
 Robust standard errors for mixed models
 }

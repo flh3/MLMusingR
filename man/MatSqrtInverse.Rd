@@ -2,16 +2,13 @@
 % Please edit documentation in R/robust_mixed.R
 \name{MatSqrtInverse}
 \alias{MatSqrtInverse}
-\title{Title}
+\title{Compute the inverse square root of a matrix}
 \usage{
 MatSqrtInverse(A)
 }
 \arguments{
-\item{A}{xxx}
-}
-\value{
-
+\item{A}{A matrix.}
 }
 \description{
-Title
+Compute the inverse square root of a matrix
 }

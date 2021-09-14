@@ -9,9 +9,6 @@ nmiss(dat)
 \arguments{
 \item{dat}{Data frame that you want to inspect}
 }
-\value{
-
-}
 \description{
 Amount of missing data per variable
 }

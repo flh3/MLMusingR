@@ -16,9 +16,6 @@ Htest(newdata, fml, group)
 Based on Raudenbush and Bryk (2002).
 A statistically significant X2 indicates heteroskedasticity.}
 }
-\value{
-
-}
 \description{
 Test for homoskedasticity at level one
 }
