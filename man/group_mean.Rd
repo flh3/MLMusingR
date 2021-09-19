@@ -14,3 +14,8 @@ group_mean(x, grp)
 \description{
 Computes the group mean of a variable
 }
+\examples{
+data(mtcars)
+#create a group centered variable
+mtcars$mpg.barj <- group_mean(mtcars$mpg, mtcars$cyl)
+}

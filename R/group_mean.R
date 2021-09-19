@@ -8,6 +8,9 @@
 #' @export
 #' @import stats
 #' @examples
+#' data(mtcars)
+#' #create a group centered variable
+#' mtcars$mpg.barj <- group_mean(mtcars$mpg, mtcars$cyl)
 group_mean <- function(x, grp) {
   #grp <- as.numeric(as.factor(grp))
   return(ave(x, grp, FUN = function(x) mean(x, na.rm = TRUE)))
