@@ -18,7 +18,11 @@ A data frame with 6606 rows and 18 variables:
   \item{books}{How many books at home.}
   \item{pared}{Highest parental education in years.}
   \item{w_fstuwt}{Student weight.}
-  \item{pv1read:pv5read}{Five plausible values for reading.}
+  \item{pv1read}{Plausible value #1 for reading.}
+  \item{pv2read}{Plausible value #2 for reading.}
+  \item{pv3read}{Plausible value #3 for reading.}
+  \item{pv4read}{Plausible value #4 for reading.}
+  \item{pv5read}{Plausible value #5 for reading.}
   \item{private}{Private school. 1 = yes, 0 = no.}
   \item{schsize}{Total school enrolment.}
 }

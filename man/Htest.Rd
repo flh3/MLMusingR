@@ -14,7 +14,8 @@ Htest(newdata, fml, group)
 \item{group}{grouping variable (in quotes)
 
 Based on Raudenbush and Bryk (2002).
-A statistically significant X2 indicates heteroskedasticity.}
+A statistically significant Chisq indicates heteroskedasticity.
+Output shows the H statistic, degrees of freedom, and p value.}
 }
 \description{
 Test for homoskedasticity at level one
