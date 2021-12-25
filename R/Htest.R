@@ -3,13 +3,27 @@
 #' @param newdata data to be used
 #' @param fml level 1 formula
 #' @param group grouping variable (in quotes)
-#'
-#' Based on Raudenbush and Bryk (2002).
+#' @description
+#' Based on Raudenbush and Bryk (2002) and Hoffman (2007).
 #' A statistically significant Chisq indicates heteroskedasticity.
 #' Output shows the H statistic, degrees of freedom, and p value.
 #'
+#'
+#'
 #' @importFrom stats formula complete.cases lm nobs pchisq
 #' @export
+#' @references Hoffman, L. (2007). Multilevel models for examining individual differences in within-person variation and covariation over time. Multivariate Behavioral Research, 42(4), 609–629.
+#' @references Raudenbush, S., & Bryk, A. (2002). Hierarchical linear models: Applications and data analysis methods (2nd ed.). Sage.
+#' @examples
+#' set.seed(123)
+#' x1 <- rnorm(400)
+#' y <- x1 * .3 + rnorm(400)
+#' gr <- rep(1:20, each = 20)
+#' dat <- data.frame(x1, y, gr)
+#' Htest(dat, y ~ x1, 'gr') #no violation
+#' y <- x1 * .3 + rnorm(400, 0, sqrt(x1^2)) #add violation
+#' dat <- data.frame(x1, y, gr)
+#' Htest(dat, y ~ x1, 'gr')
 Htest <- function(newdata, fml, group){
 
   gps <- names(table(newdata[,group]))

@@ -4,25 +4,27 @@
 \alias{robust_mixed}
 \title{Robust standard errors for mixed models}
 \usage{
-robust_mixed(m1, digits = 4, satt = FALSE, Gname = NULL)
+robust_mixed(m1, digits = 4, Gname = NULL)
 }
 \arguments{
 \item{m1}{lme4 or nlme model object}
 
 \item{digits}{Number of digits for output}
 
-\item{satt}{Satterthwaite degrees of freedom approximation; TRUE or FALSE}
-
-\item{Gname}{Group/cluster name if more than two levels of clustering
-
-If there are more than two levels of clustering, the clustering variable should
-set at the highest level}
+\item{Gname}{Group/cluster name if more than two levels of clustering}
 }
 \description{
-Robust standard errors for mixed models
+If there are more than two levels of clustering, the clustering variable should
+be set at the highest level. Should not be used for inferential statistical testing purposes
+if there are only a few clusters (e.g., < 40). The robust standard errors (CR0) are
+based on the formulation of Liang and Zeger (1986). For a few clusters, use the
+CR2 version.
 }
 \examples{
 data(mtcars)
 require(lme4)
 robust_mixed(lmer(mpg ~ wt + am + (1|cyl), data = mtcars))
+}
+\references{
+Liang, K.Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. Biometrika, 73(1), 13–22.
 }

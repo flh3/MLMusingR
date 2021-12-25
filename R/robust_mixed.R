@@ -1,13 +1,16 @@
 #' Robust standard errors for mixed models
 #'
+#' If there are more than two levels of clustering, the clustering variable should
+#' be set at the highest level. Should not be used for inferential statistical testing purposes
+#' if there are only a few clusters (e.g., < 40). The robust standard errors (CR0) are
+#' based on the formulation of Liang and Zeger (1986). For a few clusters, use the
+#' CR2 version (using the clubSandwich package).
+#'
 #' @param m1 lme4 or nlme model object
 #' @param digits Number of digits for output
-#' @param satt Satterthwaite degrees of freedom approximation; TRUE or FALSE
 #' @param Gname Group/cluster name if more than two levels of clustering
 #'
-#' If there are more than two levels of clustering, the clustering variable should
-#' set at the highest level
-#'
+#' @references Liang, K.Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. Biometrika, 73(1), 13–22.
 #' @importFrom stats var pt sigma model.matrix
 #' @import lme4
 #' @examples
@@ -15,7 +18,7 @@
 #' require(lme4)
 #' robust_mixed(lmer(mpg ~ wt + am + (1|cyl), data = mtcars))
 #' @export
-robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
+robust_mixed <- function(m1, digits = 4, Gname = NULL){
    if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
     X <- model.matrix(m1) #X matrix
     B <- fixef(m1) #coefficients
@@ -84,33 +87,15 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
   gs <- names(table(cdata$cluster)) #name of the clusters
   u <- matrix(NA, nrow = NG, ncol = k) #LZ
   cnames <- names(table(gpsv)[table(gpsv) > 0])
-  cpx <- solve(crossprod(X))
-
-  if (NG < 50 | satt == TRUE){
-    ## getting CR2
-    ## mtsqrtinv
-    tXs <- function(s) {
-      Xs <- X[cdata$cluster == s, , drop = F]
-      MatSqrtInverse(diag(NROW(Xs)) - Xs %*% cpx %*% t(Xs)) %*%
-        Xs
-    } # A x Xs / Need this first
-
-    tX <- lapply(cnames, tXs)
-
-    for(i in 1:NG){
-      ind <- gpsv == gs[i]
-      u[i,] <- as.numeric(t(cdata$r[ind]) %*% solve(Vm[ind, ind]) %*% tX[[i]])
-    }
-
-  } else {
+  #cpx <- solve(crossprod(X))
 
     # getting CR0
     for(i in 1:NG){
       ind <- gpsv == gs[i]
       u[i,] <- as.numeric(t(cdata$r[ind]) %*% solve(Vm[ind, ind]) %*% X[ind, 1:k])
-
     }
-  }
+
+
   ## e' (Zg)-1 Xg
   ## putting the pieces together
   Vinv <- solve(Vm) #should not really do this because it is slow...
@@ -119,9 +104,6 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
   clvc2 <- br2 %*% mt %*% br2
   rse <- sqrt(diag(clvc2))
 
-  if (satt == TRUE | NG <50) {
-    dfn <- round(satdf(m1), 2)
-  } else {
     ### HLM dof
     chk <- function(x){
       vrcheck <- sum(tapply(x, gpsv, var), na.rm = T) #L1,
@@ -148,7 +130,6 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
     dfn <- rep(df1, length(levs)) #naive
     dfn[levs == '2'] <- df2
 
-  }
 
   robse <- as.numeric(rse)
   FE_auto <- fixef(m1)
@@ -176,91 +157,4 @@ robust_mixed <- function(m1, digits = 4, satt = FALSE, Gname = NULL){
   )
   )
 
-}
-
-#' Compute the inverse square root of a matrix
-#'
-#' @param A A matrix.
-#'
-#' @export
-#'
-MatSqrtInverse <- function(A) {
-  ##  Compute the inverse square root of a matrix
-  ei <- eigen(A) #obtain eigenvalues and eigenvectors
-  d <- pmax(ei$values, 0) #set negatives values to zero
-  d2 <- 1/sqrt(d) #get the inverse of the square root
-  d2[d == 0] <- 0
-  ei$vectors %*% (if (length(d2)==1) d2 else diag(d2)) %*% t(ei$vectors)
-}
-
-
-## empirical DOF
-
-#' For computing Satterthwaite degrees of freedom
-#'
-#' @param mod An lme, lmerMod, or lmerModLmerTest object.
-#' @export
-#'
-satdf <- function(mod){
-  if(class(mod) == 'lme') {
-    dat <- mod$data
-    fml <- formula(mod)
-    X <- model.matrix(fml, data = dat)
-    Gname <- names(mod$groups)
-    Gname <- Gname[length(Gname)]
-    gpsv <- dat[,Gname]
-
-  } else if (class(mod) %in% c('lmerMod', 'lmerModLmerTest')){ #if lmer
-    dat <- mod@frame
-    X <- model.matrix(mod)
-    xx <- length(getME(mod, 'l_i')) #number of groups :: ngrps(m1)
-
-    Gname <- names(getME(mod, 'l_i'))[xx]
-    gpsv <- mod@frame[, Gname]
-  } else {
-    stop("Type of object is not an lmer or lme object.")
-  }
-
-  cnames <- names(table(gpsv)[table(gpsv) > 0])
-  cpx <- solve(crossprod(X))
-  cdata <- data.frame(cluster = dat[,Gname])
-  NG <- length(cnames)
-
-  ## STEP 1
-  tXs <- function(s) {
-    Xs <- X[cdata$cluster == s, , drop = F]
-    MatSqrtInverse(diag(NROW(Xs)) - Xs %*% cpx %*% t(Xs)) %*%
-      Xs
-  } # A x Xs / Need this first
-
-  tX <- lapply(cnames, tXs)
-
-  ## STEP 2
-  tHs <- function(s) {
-    Xs <- X[cdata$cluster == s, , drop = F]
-    index <- which(cdata$cluster == s)
-    ss <- matrix(0, nrow = n, ncol = length(index)) #all 0, n x G
-    ss[cbind(index, 1:length(index))] <- 1 #indicator
-    ss - X %*% cpx %*% t(Xs) #overall X x crossprod x Xs'
-  }
-
-  n <- nobs(mod)
-  tH <- lapply(cnames, tHs) #per cluster
-
-  ## STEP 3
-  k <- ncol(X)
-  id <- diag(k) #number of coefficients // for different df
-  degf <- numeric(k) #vector for df // container
-
-  for (j in 1:k){ #using a loop since it's easier to see
-
-    Gt <- sapply(seq(NG), function(i) tH[[i]] %*%
-                   tX[[i]] %*% cpx %*% id[,j])
-    #already transposed because of sapply: this is G'
-    #ev <- eigen(Gt %*% t(Gt))$values #eigen values: n x n
-    ev <- eigen(t(Gt) %*% Gt)$values #much quicker this way, same result: p x p:
-    degf[j] <- (sum(ev)^2) / sum(ev^2) #final step to compute df
-  }
-
-  return(degf)
 }
