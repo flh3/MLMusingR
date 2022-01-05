@@ -12,5 +12,5 @@
 #'   \item{private}{Private school. 1 = yes, 0 = no.}
 #'   \item{schsize}{Total school enrolment.}
 #' }
-#' @source \url{https://gpseducation.oecd.org/CountryProfile?primaryCountry=THA&treshold=10&topic=PIf}
+#' @source \url{https://gpseducation.oecd.org/CountryProfile?primaryCountry=THA}
 "thai.sm"

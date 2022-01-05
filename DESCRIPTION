@@ -4,8 +4,7 @@ Title: Practical Multilevel Modeling Using R
 Version: 0.1.0
 Author: Francis Huang <flhuang2000@yahoo.com>
 Maintainer: Francis Huang <flhuang2000@yahoo.com> 
-Description: Convenience functions and datasets.
-    Four spaces for index. 
+Description: Convenience functions and datasets to be used with Practical Multilevel Modeling using R.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
@@ -13,7 +12,7 @@ RoxygenNote: 7.1.2
 URL: https://github.com/flh3/MLMusingR
 BugReports: https://github.com/flh3/MLMusingR/issues
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5)
 Imports: 
     lme4,
     stats,

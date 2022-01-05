@@ -28,7 +28,7 @@ A data frame with 6606 rows and 18 variables:
 }
 }
 \source{
-\url{https://gpseducation.oecd.org/CountryProfile?primaryCountry=THA&treshold=10&topic=PIf}
+\url{https://gpseducation.oecd.org/CountryProfile?primaryCountry=THA}
 }
 \usage{
 data(thai)
