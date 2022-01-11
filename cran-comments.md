@@ -1,6 +1,13 @@
 ## Resubmission
 This is a resubmission. In this version I have:
 
+* Adjusted the doi in the description.
+
+* Removed the "Using R" from the title field.
+
+## Resubmission
+This is a resubmission. In this version I have:
+
 * Added more details about the functionality of the package in the DESCRIPTION.
 
 * Added \value to the .Rd files and explained the function results more.
