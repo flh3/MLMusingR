@@ -7,7 +7,15 @@
 nmiss(dat)
 }
 \arguments{
-\item{dat}{Data frame that you want to inspect}
+\item{dat}{Data frame that you want to inspect.}
+}
+\value{
+By default, this function will print the following items to the console
+\itemize{
+\item The percent of missing data per variable.
+\item The percent of complete cases (range: 0 to 1).
+\item Suggested number of datasets to impute when using multiple imputation.
+}
 }
 \description{
 Amount of missing data per variable

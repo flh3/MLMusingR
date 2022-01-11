@@ -7,12 +7,16 @@
 group_center(x, grp)
 }
 \arguments{
-\item{x}{Variable to center (e.g., dataframe$varname)}
+\item{x}{Variable to center (e.g., \code{dataframe$varname}).}
 
-\item{grp}{Cluster/grouping variable (e.g., dataframe$cluster)}
+\item{grp}{Cluster/grouping variable (e.g., \code{dataframe$cluster}).}
+}
+\value{
+A vector of group-mean centered variables.
 }
 \description{
-Also referred to as centering within cluster.
+Also referred to as centering within cluster (or within context) or demeaning the variable.
+By default, uses \code{na.rm = TRUE} when computing group means.
 }
 \examples{
 data(mtcars)

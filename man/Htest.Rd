@@ -7,11 +7,17 @@
 Htest(newdata, fml, group)
 }
 \arguments{
-\item{newdata}{data to be used}
+\item{newdata}{data to be used.}
 
-\item{fml}{level 1 formula}
+\item{fml}{level 1 formula.}
 
-\item{group}{grouping variable (in quotes)}
+\item{group}{grouping variable (in quotes).}
+}
+\value{
+Returns a data frame which contains:
+\item{H}{The computed H statistic.}
+\item{df}{The degrees of freedom.}
+\item{p}{The p-value (< .05 indicates heteroskedasticity is present).}
 }
 \description{
 Based on Raudenbush and Bryk (2002) and Hoffman (2007).
@@ -30,7 +36,7 @@ dat <- data.frame(x1, y, gr)
 Htest(dat, y ~ x1, 'gr')
 }
 \references{
-Hoffman, L. (2007). Multilevel models for examining individual differences in within-person variation and covariation over time. Multivariate Behavioral Research, 42(4), 609–629.
+Hoffman, L. (2007). Multilevel models for examining individual differences in within-person variation and covariation over time. \emph{Multivariate Behavioral Research, 42}(4), 609–629.
 
-Raudenbush, S., & Bryk, A. (2002). Hierarchical linear models: Applications and data analysis methods (2nd ed.). Sage.
+Raudenbush, S., & Bryk, A. (2002). \emph{Hierarchical linear models: Applications and data analysis methods (2nd ed.)}. Sage.
 }

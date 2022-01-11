@@ -7,12 +7,15 @@
 group_mean(x, grp)
 }
 \arguments{
-\item{x}{Variable to compute the mean for (e.g., dataframe$varname)}
+\item{x}{Variable to compute the mean for (e.g., \code{dataframe$varname}).}
 
-\item{grp}{Cluster/grouping variable (e.g., dataframe$cluster)}
+\item{grp}{Cluster/grouping variable (e.g., \code{dataframe$cluster}).}
+}
+\value{
+Outputs a vector of group means.
 }
 \description{
-Computes the group mean of a variable
+Computes the group means of a variable by a specified cluster/group. Can also be used with factors that have two levels.
 }
 \examples{
 data(mtcars)

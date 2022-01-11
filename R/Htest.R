@@ -1,19 +1,24 @@
 #' Test for homoskedasticity at level one
 #'
-#' @param newdata data to be used
-#' @param fml level 1 formula
-#' @param group grouping variable (in quotes)
+#' @param newdata data to be used.
+#' @param fml level 1 formula.
+#' @param group grouping variable (in quotes).
 #' @description
 #' Based on Raudenbush and Bryk (2002) and Hoffman (2007).
 #' A statistically significant Chisq indicates heteroskedasticity.
 #' Output shows the H statistic, degrees of freedom, and p value.
 #'
+#'@return
+#'Returns a data frame which contains:
+#' \item{H}{The computed H statistic.}
+#' \item{df}{The degrees of freedom.}
+#' \item{p}{The p-value (< .05 indicates heteroskedasticity is present).}
 #'
 #'
 #' @importFrom stats formula complete.cases lm nobs pchisq
 #' @export
-#' @references Hoffman, L. (2007). Multilevel models for examining individual differences in within-person variation and covariation over time. Multivariate Behavioral Research, 42(4), 609–629.
-#' @references Raudenbush, S., & Bryk, A. (2002). Hierarchical linear models: Applications and data analysis methods (2nd ed.). Sage.
+#' @references Hoffman, L. (2007). Multilevel models for examining individual differences in within-person variation and covariation over time. \emph{Multivariate Behavioral Research, 42}(4), 609–629.
+#' @references Raudenbush, S., & Bryk, A. (2002). \emph{Hierarchical linear models: Applications and data analysis methods (2nd ed.)}. Sage.
 #' @examples
 #' set.seed(123)
 #' x1 <- rnorm(400)

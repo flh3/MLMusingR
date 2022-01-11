@@ -1,3 +1,10 @@
+## Resubmission
+This is a resubmission. In this version I have:
+
+* Added more details about the functionality of the package in the DESCRIPTION.
+
+* Added \value to the .Rd files and explained the function results more.
+
 ## Test environments
 * local R installation, R 4.1.2
 * ubuntu 16.04 (on travis-ci), R 4.1.2

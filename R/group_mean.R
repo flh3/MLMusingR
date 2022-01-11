@@ -1,10 +1,11 @@
 #' Computes the group mean of a variable
 #'
+#' Computes the group means of a variable by a specified cluster/group. Can also be used with factors that have two levels.
 #'
-#'
-#' @param x Variable to compute the mean for (e.g., dataframe$varname)
-#' @param grp Cluster/grouping variable (e.g., dataframe$cluster)
-#'
+#' @param x Variable to compute the mean for (e.g., \code{dataframe$varname}).
+#' @param grp Cluster/grouping variable (e.g., \code{dataframe$cluster}).
+#' @return
+#' Outputs a vector of group means.
 #' @export
 #' @import stats
 #' @examples

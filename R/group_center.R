@@ -1,11 +1,14 @@
 #' Group-mean center a variable
 #'
-#' Also referred to as centering within cluster.
+#' Also referred to as centering within cluster (or within context) or demeaning the variable.
+#' By default, uses \code{na.rm = TRUE} when computing group means.
 #'
-#' @param x Variable to center (e.g., dataframe$varname)
-#' @param grp Cluster/grouping variable (e.g., dataframe$cluster)
+#' @param x Variable to center (e.g., \code{dataframe$varname}).
+#' @param grp Cluster/grouping variable (e.g., \code{dataframe$cluster}).
 #'
 #' @export
+#' @return
+#' A vector of group-mean centered variables.
 #'
 #' @examples
 #' data(mtcars)

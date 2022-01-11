@@ -4,15 +4,33 @@
 #' be set at the highest level. Should not be used for inferential statistical testing purposes
 #' if there are only a few clusters (e.g., < 40). The robust standard errors (CR0) are
 #' based on the formulation of Liang and Zeger (1986). For a few clusters, use the
-#' CR2 version (using the clubSandwich package).
+#' CR2 version using the \code{clubSandwich} package (see Pustejovsky & Tipton, 2018).
 #'
-#' @param m1 lme4 or nlme model object
-#' @param digits Number of digits for output
-#' @param Gname Group/cluster name if more than two levels of clustering
+#' @param m1 lme4 or nlme model object.
+#' @param digits Number of digits for output.
+#' @param Gname Group/cluster name if more than two levels of clustering.
 #'
-#' @references Liang, K.Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. Biometrika, 73(1), 13–22.
+#' @references Liang, K.Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. \emph{Biometrika, 73}(1), 13–22.
+#' \doi{10.1093/biomet/73.1.13}
+#'
+#' Pustejovsky, J. E. & Tipton, E. (2018). Small sample methods for
+#' cluster-robust variance estimation and hypothesis testing in fixed effects
+#' models. \emph{Journal of Business and Economic Statistics, 36}(4), 672-683.
+#' \doi{10.1080/07350015.2016.1247004}
+#'
 #' @importFrom stats var pt sigma model.matrix
 #' @import lme4
+#' @return
+#' Returns a data frame containing the estimates, model-based and empirical standard errors,
+#' as well as the t-statistic, degrees of freedom, and p values.
+#' \item{estimate}{Estimated regression coefficients.}
+#' \item{mb.se}{The model-based standard errors.}
+#' \item{robust.se}{The empirical, robust standard errors.}
+#' \item{t.stat}{The t-statistics (estimate / robust.se).}
+#' \item{df}{Between-within degrees of freedom (df).}
+#' \item{p.values}{The p values based on the t-statistic and the df.}
+#' \item{Sig}{Stars symbolically showing statistical significance.}
+#'
 #' @examples
 #' data(mtcars)
 #' require(lme4)
