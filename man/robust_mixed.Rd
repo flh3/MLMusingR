@@ -37,8 +37,8 @@ The model based (mb), CR0, and CR2 standard errors are shown for comparison purp
 }
 \examples{
 require(lme4)
-data(sch25, package = 'CR2')
-robust_mixed(lmer(math ~ male + minority + mses + mhmwk + (1|schid), data = sch25))
+data(sch29, package = 'MLMusingR')
+robust_mixed(lmer(math ~ male + minority + mses + mhmwk + (1|schid), data = sch29))
 }
 \references{
 \cite{Bell, R., & McCaffrey, D. (2002). Bias reduction in standard errors for linear regression with multi-stage samples. Survey Methodology, 28, 169-182.

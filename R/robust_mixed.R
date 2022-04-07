@@ -35,8 +35,8 @@
 #'
 #' @examples
 #' require(lme4)
-#' data(sch25, package = 'CR2')
-#' robust_mixed(lmer(math ~ male + minority + mses + mhmwk + (1|schid), data = sch25))
+#' data(sch29, package = 'MLMusingR')
+#' robust_mixed(lmer(math ~ male + minority + mses + mhmwk + (1|schid), data = sch29))
 #' @export
 robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL){
 
@@ -258,11 +258,14 @@ robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL
   if (type == 'CR2'){ #to keep things simple
     robs = rse2
     pv = p.values.cr2
+    vc = clvc2a
   } else {
     robs = robse
     pv = p.values.cr0
+    vc = clvc2
   }
 
+  print(vc)
   #gams <- solve(t(X) %*% solve(Vm) %*% X) %*% (t(X) %*% solve(Vm) %*% y)
   #SEm <- as.numeric(sqrt(diag(solve(t(X) %*% solve(Vm) %*% X)))) #X' Vm-1 X
   #SE <- as.numeric(sqrt(diag(vcov(m1)))) #compare standard errors
@@ -295,7 +298,8 @@ robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL
               results = results,
               crtype = type,
               df = dft,
-              digits = digits)
+              digits = digits,
+              vcov = vc)
 
   class(res) <- 'CR2'
   return(res)
