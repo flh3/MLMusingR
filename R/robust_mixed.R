@@ -1,43 +1,48 @@
-#' Robust standard errors for mixed models
+#' Cluster robust standard errors with degrees of freedom adjustments for lmerMod/lme objects
 #'
-#' If there are more than two levels of clustering, the clustering variable should
-#' be set at the highest level. Should not be used for inferential statistical testing purposes
-#' if there are only a few clusters (e.g., < 40). The robust standard errors (CR0) are
-#' based on the formulation of Liang and Zeger (1986). For a few clusters, use the
-#' CR2 version using the \code{clubSandwich} package (see Pustejovsky & Tipton, 2018).
+#' Function to compute the CR2 cluster
+#' robust standard errors (SE) with Bell and McCaffrey (2002)
+#' degrees of freedom (dof) adjustments. Suitable even with a low number of clusters.
+#' The model based (mb), CR0, and CR2 standard errors are shown for comparison purposes.
 #'
-#' @param m1 lme4 or nlme model object.
-#' @param digits Number of digits for output.
-#' @param Gname Group/cluster name if more than two levels of clustering.
 #'
-#' @references Liang, K.Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. \emph{Biometrika, 73}(1), 13–22.
+#' @importFrom stats nobs resid formula residuals var coef pt model.matrix family weights fitted.values
+#' @param m1 The \code{lmerMod} or \code{lme} model object.
+#' @param digits Number of decimal places to display.
+#' @param type Type of cluster robust standard error to use ("CR2" or "CR0").
+#' @param satt If Satterthwaite degrees of freedom are to be computed (if not, between-within df are used).
+#' @param Gname Group/cluster name if more than two levels of clustering (does not work with lme).
+#' @return A data frame (\code{results}) with the cluster robust adjustments with p-values.
+#' \item{Estimate}{The regression coefficient.}
+#' \item{mb.se}{The model-based (regular, unadjusted) SE.}
+#' \item{cr0.se}{CR0 standard error.}
+#' \item{cr2.se}{CR2 standard error.}
+#' \item{df}{degrees of freedom: Satterthwaite or between-within.}
+#' \item{p.cr0}{p-value using CR0 standard error.}
+#' \item{stars.cr0}{stars showing statistical significance for CR0.}
+#' \item{p.cr2}{p-value using CR2 standard error.}
+#' \item{stars.cr2}{stars showing statistical significance for CR2.}
+#'
+#' @references
+#' \cite{Bell, R., & McCaffrey, D. (2002). Bias reduction in standard errors for linear regression with multi-stage samples. Survey Methodology, 28, 169-182.
+#' (\href{https://www150.statcan.gc.ca/n1/pub/12-001-x/2002002/article/9058-eng.pdf}{link})}
+#'
+#' Liang, K.Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. \emph{Biometrika, 73}(1), 13–22.
 #' \doi{10.1093/biomet/73.1.13}
 #'
-#' Pustejovsky, J. E. & Tipton, E. (2018). Small sample methods for
-#' cluster-robust variance estimation and hypothesis testing in fixed effects
-#' models. \emph{Journal of Business and Economic Statistics, 36}(4), 672-683.
-#' \doi{10.1080/07350015.2016.1247004}
-#'
-#' @importFrom stats var pt sigma model.matrix
-#' @import lme4
-#' @return
-#' Returns a data frame containing the estimates, model-based and empirical standard errors,
-#' as well as the t-statistic, degrees of freedom, and p values.
-#' \item{estimate}{Estimated regression coefficients.}
-#' \item{mb.se}{The model-based standard errors.}
-#' \item{robust.se}{The empirical, robust standard errors.}
-#' \item{t.stat}{The t-statistics (estimate / robust.se).}
-#' \item{df}{Between-within degrees of freedom (df).}
-#' \item{p.values}{The p values based on the t-statistic and the df.}
-#' \item{Sig}{Stars symbolically showing statistical significance.}
+#' @author Francis Huang, \email{huangf@missouri.edu}
+#' @author Bixi Zhang, \email{bixizhang@missouri.edu}
 #'
 #' @examples
-#' data(mtcars)
 #' require(lme4)
-#' robust_mixed(lmer(mpg ~ wt + am + (1|cyl), data = mtcars))
+#' data(sch25, package = 'CR2')
+#' robust_mixed(lmer(math ~ male + minority + mses + mhmwk + (1|schid), data = sch25))
 #' @export
-robust_mixed <- function(m1, digits = 4, Gname = NULL){
-   if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
+robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL){
+
+  ### for lmer
+  if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
+    dat <- m1@frame
     X <- model.matrix(m1) #X matrix
     B <- fixef(m1) #coefficients
     y <- m1@resp$y #outcome
@@ -47,17 +52,28 @@ robust_mixed <- function(m1, digits = 4, Gname = NULL){
     if (is.null(Gname)){
       Gname <- names(getME(m1, 'l_i')) #name of clustering variable
       if (length(Gname) > 1) {
-        stop("lmer: Can only be used with non cross-classified data. If more than two levels, specify Gname = 'clustername'")
+        stop("lmer: Can only be used with non cross-classified data. If more than two levels, specify highest level using Gname = 'clustername'")
       }
     }
 
-    # qq <- getME(m1, 'q') #columns in RE matrix
+    js <- table(dat[, Gname]) #how many observation in each cluster
+    G <- bdiag(VarCorr(m1)) #G matrix
+
+    #re <- as.numeric(y - (X %*% B + Z %*% b)) #not used, just checking
+    #data.frame(re, resid(m1)) #the same
+    #cor(re, resid(m1)) #1
+    #qq <- getME(m1, 'q') #columns in RE matrix
+
     NG <- getME(m1, 'l_i') #number of groups :: ngrps(m1)
     NG <- NG[length(NG)]
 
-    gpsv <- m1@frame[, Gname] #data with groups
+    gpsv <- dat[, Gname] #data with groups
 
-    ml <- list() #empty list to store matrices
+    # { #done a bit later than necessary but that is fine
+    #   if(is.unsorted(gpsv)){
+    #    # stop("Data are not sorted by cluster. Please sort your data first by cluster, run the analysis, and then use the function.\n")
+    #   }
+    # }
 
     getV <- function(x) {
       lam <- data.matrix(getME(x, "Lambdat"))
@@ -71,6 +87,7 @@ robust_mixed <- function(m1, digits = 4, Gname = NULL){
     Vm <- getV(m1)
   }
 
+  ## for nlme
   if(class(m1) == 'lme'){ #if nlme
     dat <- m1$data
     fml <- formula(m1)
@@ -81,9 +98,9 @@ robust_mixed <- function(m1, digits = 4, Gname = NULL){
     Gname <- names(m1$groups)
     y <- dat[,as.character(m1$terms[[2]])]
     gpsv <- dat[,Gname]
-    js <- table(gpsv)[table(gpsv) > 0]
+    js <- table(gpsv)
 
-    { #done a bit later than necessary but that is fine
+    {#done a bit later than necessary but that is fine
       if(is.unsorted(gpsv)){
         stop("Data are not sorted by cluster. Please sort your data first by cluster, run the analysis, and then use the function.\n")
       }
@@ -95,84 +112,193 @@ robust_mixed <- function(m1, digits = 4, Gname = NULL){
       ml[[j]] <- test[[1]]
     }
 
-    Vm <- Matrix::bdiag(ml)
+    Vm <- as.matrix(Matrix::bdiag(ml)) #to work with other funs
   }
 
   ### robust computation :: once all elements are extracted
   rr <- y - X %*% B #residuals with no random effects
+
   cdata <- data.frame(cluster = gpsv, r = rr)
-  k <- ncol(X) #
+  k <- ncol(X) #number of predictors (inc intercept)
   gs <- names(table(cdata$cluster)) #name of the clusters
   u <- matrix(NA, nrow = NG, ncol = k) #LZ
-  cnames <- names(table(gpsv)[table(gpsv) > 0])
+  uu <- matrix(NA, nrow = NG, ncol = k) #CR2
+
+  cnames <- names(table(gpsv))
+
   #cpx <- solve(crossprod(X))
+  #cpx <- chol2inv(qr.R(qr(X))) #using QR decomposition, faster, more stable?
+  #cdata <- data.frame(cluster = dat[,Gname])
+  #NG <- length(cnames)
 
-    # getting CR0
-    for(i in 1:NG){
-      ind <- gpsv == gs[i]
-      u[i,] <- as.numeric(t(cdata$r[ind]) %*% solve(Vm[ind, ind]) %*% X[ind, 1:k])
-    }
+  ### quicker way, doing the bread by cluster
+  tmp <- split(X, cdata$cluster)
+  XX <- lapply(tmp, function(x) matrix(x, ncol = k)) #X per clust
 
+  # to get Vc^-1 per cluster
+  aa <- function(x){
+    sel <- which(cdata$cluster == x)
+    chol2inv(chol(Vm[sel, sel])) #this is V^-1
+    #solve(Vm[sel, sel])
+  }
 
-  ## e' (Zg)-1 Xg
+  Vm2 <- lapply(cnames, aa) #Vc^-1 used
+
+  a2 <- function(x){
+    sel <- which(cdata$cluster == x)
+    Vm[sel, sel] #this is V
+
+  }
+
+  Vm3 <- lapply(cnames, a2) #Vc used
+  names(Vm2) <- names(Vm3) <- cnames #naming
+  #Vm2 is the inverse, Vm3 is just the plain V matrix
+
+  Vinv <- as.matrix(Matrix::bdiag(Vm2))
+  # to get X V-1 X per cluster
+  bb <- function(x){
+    t(XX[[x]]) %*% Vm2[[x]] %*% XX[[x]]
+  }
+
+  dd <- lapply(cnames, bb)
+  br <- solve(Reduce("+", dd)) #bread
+
+  tXs <- function(s) {
+
+    Ijj <- diag(nrow(XX[[s]]))
+    Hjj <- XX[[s]] %*% br %*% t(XX[[s]]) %*% Vm2[[s]]
+    IHjj <- Ijj - Hjj
+
+    #MatSqrtInverse(Ijj - Hjj) #early adjustment / valid
+    V3 <- chol(Vm3[[s]]) #based on MBB
+    Bi <- V3 %*% IHjj %*% Vm3[[s]] %*% t(V3)
+    t(V3) %*% MatSqrtInverse(Bi) %*% V3
+
+  } # A x Xs / Need this first
+
+  tX <- lapply(cnames, tXs)
+
+  #rrr <- split(rr, getME(m1, 'flist'))
+  rrr <- split(rr, cdata$cluster)
+
+  # residual x inverse of V matrix x X matrix
+  cc0 <- function(x){
+    rrr[[x]] %*% Vm2[[x]] %*% XX[[x]]
+  }
+
+  u <- t(sapply(cnames, cc0))
+
+  cc2 <- function(x){
+    rrr[[x]] %*% tX[[x]] %*% Vm2[[x]] %*% XX[[x]]
+  }
+
+  uu <- t(sapply(1:NG, cc2)) #using 1:NG instead
+
+  ## e'(Vg)-1 Xg ## CR0
   ## putting the pieces together
-  Vinv <- solve(Vm) #should not really do this because it is slow...
-  br2 <- solve(t(X) %*% Vinv %*% X) #bread
+
+  #br2 <- solve(t(X) %*% Vinv %*% X) #bread
   mt <- t(u) %*% u #meat :: t(u) %*% u
-  clvc2 <- br2 %*% mt %*% br2
+  clvc2 <- br %*% mt %*% br
   rse <- sqrt(diag(clvc2))
 
-    ### HLM dof
-    chk <- function(x){
-      vrcheck <- sum(tapply(x, gpsv, var), na.rm = T) #L1,
-      # na needed if only one observation with var = NA
-      y <- 1 #assume lev1 by default
-      if (vrcheck == 0) (y <- 2) #if variation, then L2
-      return(y)
-    }
+  mt2 <- t(uu) %*% uu #meat :: t(u) %*% u
+  clvc2a <- br %*% mt2 %*% br
+  rse2 <- sqrt(diag(clvc2a))
 
-    levs <- apply(X, 2, chk) #all except intercept
-    levs[1] <- 1 #intercept
+  ### HLM dof
+  chk <- function(x){
+    vrcheck <- sum(tapply(x, gpsv, var), na.rm = T) #L1,
+    # na needed if only one observation with var = NA
+    y <- 1 #assume lev1 by default
+    if (vrcheck == 0) (y <- 2) #if variation, then L2
+    return(y)
+  }
 
-    tt <- table(levs)
-    l1v <- tt['1']
-    l2v <- tt['2']
+  levs <- apply(X, 2, chk) #all except intercept
+  # levs[1] <- 1 #intercept
 
-    l1v[is.na(l1v)] <- 0
-    l2v[is.na(l2v)] <- 0
+  tt <- table(levs)
+  l1v <- tt['1']
+  l2v <- tt['2']
 
-    ####
-    n <- nobs(m1)
-    df1 <- n - l1v - NG + 1 #l2v
-    df2 <- NG - l2v - 1
-    dfn <- rep(df1, length(levs)) #naive
-    dfn[levs == '2'] <- df2
+  l1v[is.na(l1v)] <- 0
+  l2v[is.na(l2v)] <- 0
 
+  ####
+  n <- nobs(m1)
+
+  df1 <- n - l1v - length(js)
+  df2 <- NG - l2v
+
+  dfn <- rep(df1, length(levs)) #naive
+  dfn[levs == '2'] <- df2
+
+  dfn.CR0 <- dfn
+
+  if (satt == TRUE){
+    dfn <- satdf(m1, Gname = Gname, type = type)
+  }
 
   robse <- as.numeric(rse)
   FE_auto <- fixef(m1)
-  statistic <- FE_auto / robse
-  p.values = round(2 * pt(-abs(statistic), df = dfn), digits)
-  stars <- cut(p.values, breaks = c(0, 0.001, 0.01, 0.05, 0.1, 1),
-               labels = c("***", "**", "*", ".", " "), include.lowest = TRUE)
+  cfsnames <- names(FE_auto)
+  statistic.cr0 <- FE_auto / robse
+  p.values.cr0 = round(2 * pt(-abs(statistic.cr0), df = dfn.CR0), digits) #using CR0
+  stars.cr0 <- cut(p.values.cr0, breaks = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                   labels = c("***", "**", "*", ".", " "), include.lowest = TRUE)
 
-  ################# COMPARE RESULTS
+  statistic.cr2 <- FE_auto / rse2
+  p.values.cr2 = round(2 * pt(-abs(statistic.cr2), df = dfn), digits)
+  stars.cr2 <- cut(p.values.cr2, breaks = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                   labels = c("***", "**", "*", ".", " "), include.lowest = TRUE)
+
+
+
+  if (type == 'CR2'){ #to keep things simple
+    robs = rse2
+    pv = p.values.cr2
+  } else {
+    robs = robse
+    pv = p.values.cr0
+  }
 
   #gams <- solve(t(X) %*% solve(Vm) %*% X) %*% (t(X) %*% solve(Vm) %*% y)
-  SE <- as.numeric(sqrt(diag(solve(t(X) %*% Vinv %*% X)))) #X' Vm-1 X
+  #SEm <- as.numeric(sqrt(diag(solve(t(X) %*% solve(Vm) %*% X)))) #X' Vm-1 X
   #SE <- as.numeric(sqrt(diag(vcov(m1)))) #compare standard errors
-  return(data.frame(
-    #FE_manual = as.numeric(gams),
-    estimate = round(FE_auto, digits),
-    #SE_manual = SEm,
+
+  SE <- as.numeric(sqrt(diag(br)))
+  ttable <- cbind(
+    Estimate = round(FE_auto, digits),
     mb.se = round(SE, digits),
-    robust.se = round(robse, digits),
-    t.stat = round(statistic, digits),
+    robust.se = round(robs, digits),
+    t.stat = round(FE_auto / robs, digits),
+    df = round(dfn, 1),
+    "Pr(>t)" = pv
+  )
+  results <- data.frame(
+    Estimate = round(FE_auto, digits),
+    mb.se = round(SE, digits),
+    cr0.se = round(robse, digits),
+    cr2.se = round(rse2, digits),
     df = dfn,
-    p.values = round(p.values, digits),
-    Sig = stars
-
+    p.cr0 = p.values.cr0, #using same dfn
+    stars.cr0,
+    p.cr2 = p.values.cr2,
+    stars.cr2
   )
-  )
 
+  type <-  ifelse(type == 'CR2', 'CR2', 'CR0')
+  dft <- ifelse(satt == TRUE, "Satterthwaite", "Between-within")
+
+  res <- list(ttable = ttable,
+              results = results,
+              crtype = type,
+              df = dft,
+              digits = digits)
+
+  class(res) <- 'CR2'
+  return(res)
 }
+
+
