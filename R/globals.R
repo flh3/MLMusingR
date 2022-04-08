@@ -1,1 +1,1 @@
-utils::globalVariables(c("rmse", "getVarCov"))
+utils::globalVariables(c("rmse", "getVarCov", 'fixef', 'getME', 'bdiag', 'VarCorr'))

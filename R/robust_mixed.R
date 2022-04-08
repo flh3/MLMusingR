@@ -117,7 +117,7 @@ robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL
 
   ### robust computation :: once all elements are extracted
   rr <- y - X %*% B #residuals with no random effects
-
+  #n <- nobs(m1)
   cdata <- data.frame(cluster = gpsv, r = rr)
   k <- ncol(X) #number of predictors (inc intercept)
   gs <- names(table(cdata$cluster)) #name of the clusters
@@ -265,7 +265,6 @@ robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL
     vc = clvc2
   }
 
-  print(vc)
   #gams <- solve(t(X) %*% solve(Vm) %*% X) %*% (t(X) %*% solve(Vm) %*% y)
   #SEm <- as.numeric(sqrt(diag(solve(t(X) %*% solve(Vm) %*% X)))) #X' Vm-1 X
   #SE <- as.numeric(sqrt(diag(vcov(m1)))) #compare standard errors
@@ -299,7 +298,8 @@ robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL
               crtype = type,
               df = dft,
               digits = digits,
-              vcov = vc)
+              vcov = vc,
+              orig = m1)
 
   class(res) <- 'CR2'
   return(res)
