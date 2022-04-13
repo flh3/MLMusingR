@@ -1,0 +1,15 @@
+#' Student engagement dataset (complete data).
+#'
+#' Example data used to investigate missing data (this is the complete dataset).
+#' @usage data(engage)
+#' @format A data frame with 528 observations from 40 groups and 7 variables:
+#' \describe{
+#'   \item{eng}{Student engagement.}
+#'   \item{mot}{Student motivation.}
+#'   \item{gpa}{Student grade point average.}
+#'   \item{grade}{Student grade level (6-8; a factor).}
+#'   \item{rural}{School level rural variable indicator; 1 = yes/0 = no.}
+#'   \item{frpm}{Percent of students eligible for free or reduced price meals at the school.}
+#'   \item{school}{School indicator (clustering variable).}
+#' }
+"engage"

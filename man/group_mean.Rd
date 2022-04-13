@@ -4,12 +4,14 @@
 \alias{group_mean}
 \title{Computes the group mean of a variable}
 \usage{
-group_mean(x, grp)
+group_mean(x, grp, lm = FALSE)
 }
 \arguments{
 \item{x}{Variable to compute the mean for (e.g., \code{dataframe$varname}).}
 
 \item{grp}{Cluster/grouping variable (e.g., \code{dataframe$cluster}).}
+
+\item{lm}{Compute reliability (lambda) adjusted means.}
 }
 \value{
 Outputs a vector of group means.
@@ -19,6 +21,6 @@ Computes the group means of a variable by a specified cluster/group. Can also be
 }
 \examples{
 data(mtcars)
-#create a group centered variable
+#create a group mean aggregated variable
 mtcars$mpg.barj <- group_mean(mtcars$mpg, mtcars$cyl)
 }
