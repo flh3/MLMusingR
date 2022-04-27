@@ -24,5 +24,5 @@ nmiss <- function(dat){
   cat("Percent missing per variable:\n")
   print(pmiss)
   cat("\nPercent complete cases:", pcomp, "\n")
-  cat("Number to impute:", round((1 - pcomp) * 100,0), '\n')
+  cat("(Minimum) number to impute:", round((1 - pcomp) * 100,0), '\n')
 }

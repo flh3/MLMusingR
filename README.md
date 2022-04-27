@@ -4,7 +4,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-MLMusingR is a companion package for the book Applied Multilevel Modeling using R.
+MLMusingR is a companion package for the book Practical Multilevel Modeling using R.
 
 ## Installation
 
