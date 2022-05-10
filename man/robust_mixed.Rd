@@ -41,8 +41,9 @@ robust_mixed(lmer(math ~ male + minority + mses + mhmwk + (1|schid), data = sch2
 \cite{Bell, R., & McCaffrey, D. (2002). Bias reduction in standard errors for linear regression with multi-stage samples. Survey Methodology, 28, 169-182.
 (\href{https://www150.statcan.gc.ca/n1/pub/12-001-x/2002002/article/9058-eng.pdf}{link})}
 
-Liang, K.Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. \emph{Biometrika, 73}(1), 13–22.
-\doi{10.1093/biomet/73.1.13}
+\cite{Liang, K.Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. \emph{Biometrika, 73}(1), 13-22.
+(\href{https://academic.oup.com/biomet/article/73/1/13/246001}{link})
+}
 }
 \author{
 Francis Huang, \email{huangf@missouri.edu}

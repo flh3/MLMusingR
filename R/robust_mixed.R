@@ -7,6 +7,7 @@
 #'
 #'
 #' @importFrom stats nobs resid formula residuals var coef pt model.matrix family weights fitted.values
+#' @importFrom methods is
 #' @param m1 The \code{lmerMod} or \code{lme} model object.
 #' @param digits Number of decimal places to display.
 #' @param type Type of cluster robust standard error to use ("CR2" or "CR0").
@@ -24,11 +25,13 @@
 #' \cite{Bell, R., & McCaffrey, D. (2002). Bias reduction in standard errors for linear regression with multi-stage samples. Survey Methodology, 28, 169-182.
 #' (\href{https://www150.statcan.gc.ca/n1/pub/12-001-x/2002002/article/9058-eng.pdf}{link})}
 #'
-#' Liang, K.Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. \emph{Biometrika, 73}(1), 13–22.
-#' \doi{10.1093/biomet/73.1.13}
+#' \cite{Liang, K.Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. \emph{Biometrika, 73}(1), 13-22.
+#' (\href{https://academic.oup.com/biomet/article/73/1/13/246001}{link})
+#' }
 #'
 #' @author Francis Huang, \email{huangf@missouri.edu}
 #' @author Bixi Zhang, \email{bixizhang@missouri.edu}
+#'
 #'
 #' @examples
 #' require(lme4)
@@ -38,8 +41,9 @@
 robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL){
 
   ### for lmer
-  if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
-    dat <- m1@frame
+  #if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
+  if(is(m1, 'lmerMod')){
+   dat <- m1@frame
     X <- model.matrix(m1) #X matrix
     B <- fixef(m1) #coefficients
     y <- m1@resp$y #outcome
@@ -55,11 +59,6 @@ robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL
 
     js <- table(dat[, Gname]) #how many observation in each cluster
     G <- bdiag(VarCorr(m1)) #G matrix
-
-    #re <- as.numeric(y - (X %*% B + Z %*% b)) #not used, just checking
-    #data.frame(re, resid(m1)) #the same
-    #cor(re, resid(m1)) #1
-    #qq <- getME(m1, 'q') #columns in RE matrix
 
     NG <- getME(m1, 'l_i') #number of groups :: ngrps(m1)
     NG <- NG[length(NG)]
@@ -85,7 +84,8 @@ robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL
   }
 
   ## for nlme
-  if(class(m1) == 'lme'){ #if nlme
+  #if(class(m1) == 'lme'){ #if nlme
+  if(is(m1, 'lme')){
     dat <- m1$data
     fml <- formula(m1)
     X <- model.matrix(fml, data = dat)

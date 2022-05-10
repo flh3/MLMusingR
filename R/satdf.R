@@ -5,6 +5,7 @@
 #'
 #'
 #' @importFrom stats nobs resid formula residuals var coef pt model.matrix family weights fitted.values
+#' @importFrom methods is
 #' @param m1 The \code{lmerMod} or \code{lme} model object.
 #' @param type The type of cluster robust correction used (i.e., CR2 or none).
 #' @param Vinv2 Inverse of the variance matrix.
@@ -21,7 +22,8 @@ satdf <- function(m1, type = 'none', Vinv2, Vm2, br2, Gname = NULL){
 
   #require(Matrix)
 
-  if(class(m1) == 'lme'){ #if nlme
+  #if(class(m1) == 'lme'){ #if nlme
+  if(is(m1, 'lme')){
     dat <- m1$data
     fml <- formula(m1)
     X <- model.matrix(fml, data = dat)
@@ -50,7 +52,8 @@ satdf <- function(m1, type = 'none', Vinv2, Vm2, br2, Gname = NULL){
   }
 
   ### for lmer
-  if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
+  #if(class(m1) %in%  c('lmerMod', 'lmerModLmerTest')){ #if lmer
+  if(is(m1, 'lmerMod')){
     dat <- m1@frame
     X <- model.matrix(m1) #X matrix
     B <- fixef(m1) #coefficients

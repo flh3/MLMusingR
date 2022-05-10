@@ -1,3 +1,9 @@
+c(person("Francis", "Huang",
+  role = c('aut', 'cre'),
+  email = "flhuang2000@yahoo.com"),
+  person("Bixi", 'Zhang',
+  role = "ctb",
+  email = "bixizhang@missouri.edu"))
 
 
 getV <- function(x){

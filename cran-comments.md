@@ -1,3 +1,10 @@
+## Updated 0.2.0 (2022.05.09)
+
+* Revised robust_mixed (w/Bixi Zhang).
+* Improved printing output.
+* Added engage and engage.miss datasets.
+* Modified wording in nmiss.
+
 ## Resubmission
 This is a resubmission. In this version I have:
 
