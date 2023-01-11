@@ -8,6 +8,8 @@
 #'
 #' @importFrom stats nobs resid formula residuals var coef pt model.matrix family weights fitted.values
 #' @importFrom methods is
+#' @importFrom lme4 getME
+#' @importFrom nlme getVarCov
 #' @param m1 The \code{lmerMod} or \code{lme} model object.
 #' @param digits Number of decimal places to display.
 #' @param type Type of cluster robust standard error to use ("CR2" or "CR0").
@@ -199,6 +201,7 @@ robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL
   ## putting the pieces together
   #br2 <- solve(t(X) %*% Vinv %*% X) #bread
   mt <- t(u) %*% u #meat
+  if (ncol(X) == 1) {mt <- u %*% t(u)} #updated 2022.12.24
   clvc2 <- br %*% mt %*% br #variance covariance matrix
   rse <- sqrt(diag(clvc2)) #standard errors
 
@@ -250,6 +253,7 @@ robust_mixed <- function(m1, digits = 3, type = 'CR2', satt = TRUE, Gname = NULL
 robs <- rse
 pv <- p.values
 vc <- clvc2
+rownames(vc) <- colnames(vc) <- cfsnames #names matrix 2022.12.24
 
 
   #gams <- solve(t(X) %*% solve(Vm) %*% X) %*% (t(X) %*% solve(Vm) %*% y)

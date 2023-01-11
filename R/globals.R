@@ -1,1 +1,1 @@
-utils::globalVariables(c("rmse", "getVarCov", 'fixef', 'getME', 'bdiag', 'VarCorr'))
+utils::globalVariables(c("rmse", "getVarCov", 'fixef', 'getME', 'bdiag', 'VarCorr', 'Estimate', 'cr.se', 'p.val', 'dplyr::rename', 'tibble::as_tibble', 'dplyr::bind_cols', 'performance::r2_nakagawa'))
