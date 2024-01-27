@@ -1,3 +1,9 @@
+## Updated 0.3.2 (2024.01.26)
+* added pisa2012 dataset
+
+## Updated 0.3.1 (2023.05.09) [not uploaded]
+* modified group_center: failed if grp was a factor with a level with no observations
+
 ## Updated 0.3.0 (2023.01.11)
 
 * fixed computation if using only an intercept-only model for CR

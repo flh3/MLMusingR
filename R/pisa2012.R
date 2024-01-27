@@ -1,0 +1,23 @@
+#' USA data from PISA 2012
+#'
+#' Example data for mixPV.
+#' @usage data(pisa2012)
+#' @format A data frame with 3136 rows and 14 variables:
+#' \describe{
+#'   \item{pv1math}{Plausible value #1 for mathematics}
+#'   \item{pv2math}{Plausible value #2 for mathematics}
+#'   \item{pv3math}{Plausible value #3 for mathematics}
+#'   \item{pv4math}{Plausible value #4 for mathematics}
+#'   \item{pv5math}{Plausible value #5 for mathematics}
+#'   \item{escs}{Index of economic, social, and cultural status.}
+#'   \item{schoolid}{School identifier}
+#'   \item{st29q03}{Maths interest- Look forward to lessons.}
+#'   \item{st04q01}{Student gender.}
+#'   \item{w_fstuwt}{Final student weight (total).}
+#'   \item{w_fschwt}{School weight.}
+#'   \item{sc14q02}{Shortage- Maths teachers}
+#'   \item{pwt1}{Student weight (conditional).}
+#'   \item{noise1}{Random noise.}
+#' }
+#' @source \url{https://nces.ed.gov/pubsearch/pubsinfo.asp?pubid=2014028}
+"pisa2012"

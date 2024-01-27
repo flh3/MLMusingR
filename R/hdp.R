@@ -13,7 +13,7 @@
 #'   \item{LengthofStay}{Count number of days patients stayed in the hospital after surgery.}
 #'   \item{WBC}{Continuous, white blood count. Roughly 3,000 is low, 10,000 is middle, and 30,000 per microliter is high.}
 #'   \item{RBC}{Continuous, red blood count.}
-#'   \item{BMI}{Body mass index given by the formula (frac{kg}{meters^2}.}
+#'   \item{BMI}{Body mass index given by the formula (\eqn{kg / meters^2}).}
 #'   \item{IL6}{Continuous, interleukin 6, a proinflammatory cytokine commonly examined as an indicator of inflammation, cannot be lower than zero.}
 #'   \item{CRP}{Continuous, C-reactive protein, a protein in the blood also used as an indicator of inflammation. It is also impacted by BMI.}
 #'   \item{HID}{Hospital identifier.}

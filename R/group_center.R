@@ -15,6 +15,6 @@
 #' #create a group centered variable
 #' mtcars$mpg.gpc <- group_center(mtcars$mpg, mtcars$cyl)
 group_center <- function(x, grp) {
-  grp <- as.numeric(as.factor(grp))
+  grp <- as.numeric(as.factor(as.character(grp)))
   return(x - tapply(x, grp, mean, na.rm = TRUE)[grp])
 }
