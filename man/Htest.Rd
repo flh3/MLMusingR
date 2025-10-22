@@ -36,7 +36,6 @@ dat <- data.frame(x1, y, gr)
 Htest(dat, y ~ x1, 'gr')
 }
 \references{
-Hoffman, L. (2007). Multilevel models for examining individual differences in within-person variation and covariation over time. \emph{Multivariate Behavioral Research, 42}(4), 609–629.
-
-Raudenbush, S., & Bryk, A. (2002). \emph{Hierarchical linear models: Applications and data analysis methods (2nd ed.)}. Sage.
+\cite{Hoffman, L. (2007). Multilevel models for examining individual differences in within-person variation and covariation over time. \emph{Multivariate Behavioral Research, 42}(4), 609–629.}
+\cite{Raudenbush, S., & Bryk, A. (2002). \emph{Hierarchical linear models: Applications and data analysis methods (2nd ed.)}. Sage.}
 }

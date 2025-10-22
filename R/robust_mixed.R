@@ -28,7 +28,7 @@
 #' (\href{https://www150.statcan.gc.ca/n1/pub/12-001-x/2002002/article/9058-eng.pdf}{link})}
 #'
 #' \cite{Liang, K.Y., & Zeger, S. L. (1986). Longitudinal data analysis using generalized linear models. \emph{Biometrika, 73}(1), 13-22.
-#' (\href{https://academic.oup.com/biomet/article/73/1/13/246001}{link})
+#' (\doi{10.1093/biomet/73.1.13})
 #' }
 #'
 #' @author Francis Huang, \email{huangf@missouri.edu}

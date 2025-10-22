@@ -1,3 +1,6 @@
+## Updated 0.4.0 (2025.01.08)
+* added mixPV and lrtPV
+
 ## Updated 0.3.2 (2024.01.26)
 * added pisa2012 dataset
 
