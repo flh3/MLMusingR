@@ -2,9 +2,12 @@
 % Please edit documentation in R/group_center.R
 \name{group_center}
 \alias{group_center}
+\alias{cwc}
 \title{Group-mean center a variable}
 \usage{
 group_center(x, grp)
+
+cwc(x, grp)
 }
 \arguments{
 \item{x}{Variable to center (e.g., \code{dataframe$varname}).}

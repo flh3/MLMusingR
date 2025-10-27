@@ -18,3 +18,6 @@ group_center <- function(x, grp) {
   grp <- as.numeric(as.factor(as.character(grp)))
   return(as.numeric(x - tapply(x, grp, mean, na.rm = TRUE)[grp]))
 }
+#' @rdname group_center
+#' @export
+cwc <- group_center
